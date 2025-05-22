@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 import traceback
 
 # 한글 폰트 설정
-plt.rcParams['font.family'] = 'Malgun Gothic'
+plt.rcParams['font.family'] = 'AppleGothic'  # MacOS 용 폰트로 변경
 plt.rcParams['axes.unicode_minus'] = False
 
 warnings.filterwarnings('ignore')
@@ -103,33 +103,50 @@ def normalize_home_away(value):
         return '원정'
     return '알수없음'
 
-def calculate_team_stats(df, window=10):
+def calculate_team_stats(df, target_date, window=10):
     """
-    팀별 이동평균 통계를 계산하는 함수
+    특정 날짜 이전의 데이터만 사용하여 팀별 통계를 계산하는 함수
     """
-    logging.info(f"팀 통계 계산 중 (window={window})...")
+    logging.info(f"팀 통계 계산 중 (기준일: {target_date}, window={window})...")
     stats_list = []
     
     for team in df['팀명'].unique():
-        team_data = df[df['팀명'] == team].sort_values('날짜')
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
         
+        # 데이터가 충분하지 않은 경우 처리
+        if len(team_data) < 1:
+            continue
+            
         # 통계 계산
-        stats = pd.DataFrame({
-            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean(),
-            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean(),
-            '최근평균타율': team_data['안타'].rolling(window, min_periods=1).sum() / 
-                        team_data['타수'].rolling(window, min_periods=1).sum(),
-            '최근평균출루율': (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() / 
-                        (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum(),
-            '최근평균장타율': team_data['루타'].rolling(window, min_periods=1).sum() / 
-                        team_data['타수'].rolling(window, min_periods=1).sum()
-        })
+        recent_stats = pd.DataFrame({
+            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균타율': (
+                team_data['안타'].rolling(window, min_periods=1).sum() /
+                team_data['타수'].rolling(window, min_periods=1).sum()
+            ).iloc[-1],
+            '최근평균출루율': (
+                (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() /
+                (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
+            ).iloc[-1],
+            '최근평균장타율': (
+                team_data['루타'].rolling(window, min_periods=1).sum() /
+                team_data['타수'].rolling(window, min_periods=1).sum()
+            ).iloc[-1]
+        }, index=[0])
         
-        stats['팀명'] = team
-        stats['날짜'] = team_data['날짜']
-        stats_list.append(stats)
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        stats_list.append(recent_stats)
     
-    return pd.concat(stats_list)
+    if not stats_list:
+        return pd.DataFrame()
+    
+    return pd.concat(stats_list, ignore_index=True)
 
 def determine_match_result(group):
     """
@@ -150,16 +167,16 @@ def preprocess_data(df):
     """
     logging.info("데이터 전처리 시작...")
     
-    # 날짜 형식 변환
+    # 기본 전처리 (날짜 변환, 정규화 등)
     df['날짜'] = pd.to_datetime(df['날짜'])
+    df = df.sort_values('날짜')
     
-    # 경기 ID 생성
+    # 경기 ID 및 기본 정보 처리
     df['경기ID'] = df.groupby(['날짜', '경기장']).ngroup()
+    df['상대팀'] = df.groupby(['경기ID'])['팀명'].transform(
+        lambda x: x.iloc[::-1].values if len(x) == 2 else None)
     
-    # 상대팀 정보 추가
-    df['상대팀'] = df.groupby(['경기ID'])['팀명'].transform(lambda x: x.iloc[::-1].values if len(x) == 2 else None)
-    
-    # 팀명, 경기장, 홈/원정 정규화
+    # 정규화
     df['팀명'] = df['팀명'].apply(normalize_team_names)
     df['상대팀'] = df['상대팀'].apply(normalize_team_names)
     df['경기장'] = df['경기장'].apply(normalize_stadium)
@@ -173,22 +190,40 @@ def preprocess_data(df):
         lambda x: pd.Series(determine_match_result(x), index=x.index)
     ).values
     
-    # 팀 통계 계산
-    team_stats = calculate_team_stats(df)
-    df = df.merge(team_stats, on=['팀명', '날짜'], how='left')
+    # 각 날짜별로 통계 계산
+    processed_data = []
+    for date in df['날짜'].unique():
+        # 해당 날짜의 경기 데이터
+        current_games = df[df['날짜'] == date]
+        
+        # 해당 날짜 이전 데이터로 통계 계산
+        team_stats = calculate_team_stats(df, date)
+        
+        # 현재 경기 데이터와 통계 병합
+        if not team_stats.empty:
+            current_games = current_games.merge(
+                team_stats, on=['팀명', '날짜'], how='left')
+            
+            # 상대팀 통계 병합
+            opponent_stats = team_stats.copy()
+            opponent_stats.columns = [
+                '상대팀' + col if col not in ['팀명', '날짜'] else col 
+                for col in opponent_stats.columns
+            ]
+            opponent_stats = opponent_stats.rename(columns={'팀명': '상대팀'})
+            current_games = current_games.merge(
+                opponent_stats, on=['상대팀', '날짜'], how='left')
+        
+        processed_data.append(current_games)
     
-    # 상대팀 통계 계산
-    opponent_stats = team_stats.copy()
-    opponent_stats.columns = ['상대팀' + col if col not in ['팀명', '날짜'] else col 
-                            for col in opponent_stats.columns]
-    opponent_stats = opponent_stats.rename(columns={'팀명': '상대팀'})
-    df = df.merge(opponent_stats, on=['상대팀', '날짜'], how='left')
+    # 모든 처리된 데이터 합치기
+    df_processed = pd.concat(processed_data, ignore_index=True)
     
     # 시간 관련 피처 생성
-    df['주말'] = df['날짜'].dt.dayofweek.isin([5, 6]).astype(int)
-    df['월'] = df['날짜'].dt.month
+    df_processed['주말'] = df_processed['날짜'].dt.dayofweek.isin([5, 6]).astype(int)
+    df_processed['월'] = df_processed['날짜'].dt.month
     
-    return df
+    return df_processed
 
 def encode_categorical_features(df):
     """
@@ -225,11 +260,8 @@ def train_models(X_train_scaled, y_train):
     
     # LightGBM 모델
     logging.info("LightGBM 모델 학습...")
-    
-    # LightGBM 데이터셋 생성
     train_data = lgb.Dataset(X_train_scaled, label=y_train)
     
-    # LightGBM 파라미터 설정
     params = {
         'objective': 'binary',
         'metric': 'auc',
@@ -245,10 +277,9 @@ def train_models(X_train_scaled, y_train):
         'max_bin': 255,
         'verbose': -1,
         'random_state': 42,
-        'force_col_wise': True  # 멀티스레딩 방식 강제 지정
+        'force_col_wise': True
     }
     
-    # 모델 학습
     lgb_model = lgb.train(
         params,
         train_data,
@@ -279,7 +310,7 @@ def visualize_feature_importance(model, features, output_file):
     
     plt.figure(figsize=(12, 8))
     importance = pd.Series(model.feature_importances_, 
-                         index=[feature_names_korean[f] for f in features])
+                         index=[feature_names_korean.get(f, f) for f in features])
     importance.sort_values(ascending=True).plot(kind='barh')
     plt.title('XGBoost 특성 중요도', fontsize=14, pad=20)
     plt.xlabel('중요도', fontsize=12)
@@ -304,16 +335,14 @@ def main():
                    '최근승률', '최근평균득점', '최근평균타율', '최근평균출루율', '최근평균장타율',
                    '상대팀최근승률', '상대팀최근평균득점', '주말', '월']
         
-        # 5. 데이터 분할
+        # 5. 데이터 분할 (시계열 고려)
         X = df[features]
         y = (df['승리여부'] == '승').astype(int)
         
-        tscv = TimeSeriesSplit(n_splits=5)
-        splits = list(tscv.split(X))
-        train_index, test_index = splits[-1]
-        
-        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        # 시계열 분할
+        train_size = int(len(df) * 0.8)
+        X_train, X_test = X[:train_size], X[train_size:]
+        y_train, y_test = y[:train_size], y[train_size:]
         
         # 6. 스케일링
         scaler = StandardScaler()

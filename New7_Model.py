@@ -46,39 +46,76 @@ def load_data(file_path='BASEBALL_stats_15.xlsx'):
         logging.error(f"데이터 로드 중 오류 발생: {str(e)}")
         raise
 
-def calculate_team_pitching_stats(df):
+def calculate_team_pitching_stats(df, target_date):
     """팀별 투수 성적 통계를 계산하는 함수"""
     pitching_stats = []
     
     for team in df['팀명'].unique():
-        team_data = df[df['팀명'] == team].sort_values('날짜')
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
+        
+        if len(team_data) < 1:
+            continue
         
         # 상대팀 득점을 투수 실점으로 사용
         team_data['실점'] = team_data.groupby('경기ID')['득점'].transform('sum') - team_data['득점']
         
-        # 이닝당 실점 (ERA와 유사)
-        team_data['이닝당실점'] = team_data['실점'].rolling(10, min_periods=1).mean()
+        # 이닝 정보 추가 (9이닝 기준)
+        team_data['투구이닝'] = 9  # 기본값
+        team_data.loc[team_data['홈/원정'] == '홈', '투구이닝'] = 8  # 9회말 공격팀이 이기면 8이닝
         
-        # 투수 안정성 (실점 표준편차)
-        team_data['실점안정성'] = team_data['실점'].rolling(10, min_periods=1).std()
-        
-        # 최근 10경기 평균 실점
-        team_data['최근실점'] = team_data['실점'].rolling(10, min_periods=1).mean()
+        # 최근 통계 계산
+        recent_stats = pd.DataFrame({
+            '이닝당실점': (
+                team_data['실점'].rolling(10, min_periods=1).sum() /
+                team_data['투구이닝'].rolling(10, min_periods=1).sum()
+            ).iloc[-1] * 9,  # 9이닝 기준으로 환산
+            '실점안정성': team_data['실점'].rolling(10, min_periods=1).std().iloc[-1],
+            '최근실점': team_data['실점'].rolling(10, min_periods=1).mean().iloc[-1],
+            '최근완투율': (
+                team_data['투구이닝'].eq(9)
+                .rolling(10, min_periods=1)
+                .mean()
+                .iloc[-1]
+            ),
+            '최근QS비율': (
+                (team_data['투구이닝'] >= 6) & (team_data['실점'] <= 3)
+            ).rolling(10, min_periods=1).mean().iloc[-1]
+        }, index=[0])
         
         # 홈/원정 구분 실점
         for location in ['홈', '원정']:
             mask = team_data['홈/원정'] == location
-            team_data.loc[mask, f'{location}_실점'] = (
-                team_data.loc[mask, '실점']
-                .rolling(10, min_periods=1)
-                .mean()
-            )
+            if mask.any():
+                recent_stats[f'{location}_실점'] = (
+                    team_data.loc[mask, '실점']
+                    .rolling(10, min_periods=1)
+                    .mean()
+                    .iloc[-1] if len(team_data.loc[mask]) > 0 else np.nan
+                )
+                
+                recent_stats[f'{location}_이닝당실점'] = (
+                    (team_data.loc[mask, '실점'].rolling(10, min_periods=1).sum() /
+                     team_data.loc[mask, '투구이닝'].rolling(10, min_periods=1).sum() * 9)
+                    .iloc[-1] if len(team_data.loc[mask]) > 0 else np.nan
+                )
+            else:
+                recent_stats[f'{location}_실점'] = np.nan
+                recent_stats[f'{location}_이닝당실점'] = np.nan
         
-        pitching_stats.append(team_data)
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        pitching_stats.append(recent_stats)
     
-    return pd.concat(pitching_stats)
+    if not pitching_stats:
+        return pd.DataFrame()
+    
+    return pd.concat(pitching_stats, ignore_index=True)
 
-def calculate_matchup_stats(df):
+def calculate_matchup_stats(df, target_date):
     """팀 간 상대 전적 및 투수 성적을 계산하는 함수"""
     df = df.copy()
     
@@ -90,61 +127,121 @@ def calculate_matchup_stats(df):
     matchup_stats = []
     
     for team in df['팀명'].unique():
-        team_data = df[df['팀명'] == team].sort_values('날짜')
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
+        
+        if len(team_data) < 1:
+            continue
         
         # 상대팀별 투수 성적
+        recent_stats = pd.DataFrame(index=[0])
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        
         for opponent in df['팀명'].unique():
             if team != opponent:
                 mask = (team_data['상대팀'] == opponent)
-                
-                # 상대팀 상대 평균 실점
-                team_data.loc[mask, f'VS_{opponent}_실점'] = (
-                    team_data.loc[mask, '실점']
-                    .expanding()
-                    .mean()
-                    .fillna(team_data['실점'].mean())
-                )
-                
-                # 상대팀 상대 승률
-                team_data.loc[mask, f'VS_{opponent}_승률'] = (
-                    team_data.loc[mask, '승리여부'].eq('승')
-                    .expanding()
-                    .mean()
-                    .fillna(0.5)
-                )
+                if mask.any():
+                    # 상대팀 상대 평균 실점
+                    recent_stats[f'VS_{opponent}_실점'] = (
+                        team_data.loc[mask, '실점'].mean()
+                        if len(team_data.loc[mask]) > 0
+                        else team_data['실점'].mean()
+                    )
+                    
+                    # 상대팀 상대 승률
+                    recent_stats[f'VS_{opponent}_승률'] = (
+                        team_data.loc[mask, '승리여부'].eq('승').mean()
+                        if len(team_data.loc[mask]) > 0
+                        else 0.5
+                    )
+                else:
+                    recent_stats[f'VS_{opponent}_실점'] = team_data['실점'].mean()
+                    recent_stats[f'VS_{opponent}_승률'] = 0.5
         
-        matchup_stats.append(team_data)
+        matchup_stats.append(recent_stats)
     
-    return pd.concat(matchup_stats)
+    if not matchup_stats:
+        return pd.DataFrame()
+    
+    return pd.concat(matchup_stats, ignore_index=True)
 
-def create_advanced_pitching_features(df):
+def create_advanced_pitching_features(df, target_date):
     """고급 투수 관련 특성 생성 함수"""
-    # 실점 추세 (기울기)
-    df['실점추세'] = (
-        df.groupby('팀명')['실점']
-        .rolling(5, min_periods=1)
-        .apply(lambda x: np.polyfit(range(len(x)), x, 1)[0] if len(x) > 1 else 0)
-        .reset_index(level=0, drop=True)
-    )
+    advanced_stats = []
     
-    # 실점 변동성
-    df['실점변동성'] = (
-        df.groupby('팀명')['실점']
-        .rolling(10, min_periods=1)
-        .std()
-        .reset_index(level=0, drop=True)
-    )
+    for team in df['팀명'].unique():
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
+        
+        if len(team_data) < 1:
+            continue
+        
+        recent_stats = pd.DataFrame(index=[0])
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        
+        # 실점 추세 (기울기)
+        if len(team_data) >= 5:
+            recent_data = team_data.tail(5)
+            recent_stats['실점추세'] = np.polyfit(
+                range(len(recent_data)), 
+                recent_data['실점'].values, 
+                1
+            )[0]
+        else:
+            recent_stats['실점추세'] = 0
+        
+        # 실점 변동성
+        recent_stats['실점변동성'] = (
+            team_data['실점']
+            .rolling(10, min_periods=1)
+            .std()
+            .iloc[-1]
+        )
+        
+        # 이닝당실점 추세
+        team_data['이닝당실점'] = team_data['실점'] / team_data['투구이닝'] * 9
+        if len(team_data) >= 5:
+            recent_data = team_data.tail(5)
+            recent_stats['이닝당실점추세'] = np.polyfit(
+                range(len(recent_data)),
+                recent_data['이닝당실점'].values,
+                1
+            )[0]
+        else:
+            recent_stats['이닝당실점추세'] = 0
+        
+        # 연속 퀄리티스타트
+        team_data['퀄리티스타트'] = (team_data['투구이닝'] >= 6) & (team_data['실점'] <= 3)
+        recent_stats['연속QS'] = (
+            team_data['퀄리티스타트']
+            .rolling(5, min_periods=1)
+            .sum()
+            .iloc[-1]
+        )
+        
+        # 최근 완투 횟수
+        team_data['완투'] = team_data['투구이닝'] == 9
+        recent_stats['최근완투'] = (
+            team_data['완투']
+            .rolling(10, min_periods=1)
+            .sum()
+            .iloc[-1]
+        )
+        
+        advanced_stats.append(recent_stats)
     
-    # 연속 퀄리티스타트 (6이닝 3실점 이하로 가정)
-    df['퀄리티스타트'] = df['실점'] <= 3
-    df['연속QS'] = (
-        df.groupby('팀명')['퀄리티스타트']
-        .rolling(5, min_periods=1)
-        .sum()
-        .reset_index(level=0, drop=True)
-    )
+    if not advanced_stats:
+        return pd.DataFrame()
     
-    return df
+    return pd.concat(advanced_stats, ignore_index=True)
 
 def preprocess_data(df):
     """데이터 전처리를 수행하는 함수"""
@@ -152,20 +249,43 @@ def preprocess_data(df):
     
     # 날짜 변환
     df['날짜'] = pd.to_datetime(df['날짜'])
+    df = df.sort_values('날짜')
     
-    # 투수 통계 계산
-    df = calculate_team_pitching_stats(df)
-    df = calculate_matchup_stats(df)
-    df = create_advanced_pitching_features(df)
+    # 각 날짜별로 통계 계산
+    processed_data = []
+    for date in df['날짜'].unique():
+        # 해당 날짜의 경기 데이터
+        current_games = df[df['날짜'] == date].copy()
+        
+        # 투수 통계 계산 (해당 날짜 이전 데이터만 사용)
+        pitching_stats = calculate_team_pitching_stats(df, date)
+        matchup_stats = calculate_matchup_stats(df, date)
+        advanced_stats = create_advanced_pitching_features(df, date)
+        
+        # 현재 경기 데이터와 통계 병합
+        if not pitching_stats.empty:
+            current_games = current_games.merge(
+                pitching_stats, on=['팀명', '날짜'], how='left')
+        if not matchup_stats.empty:
+            current_games = current_games.merge(
+                matchup_stats, on=['팀명', '날짜'], how='left')
+        if not advanced_stats.empty:
+            current_games = current_games.merge(
+                advanced_stats, on=['팀명', '날짜'], how='left')
+        
+        processed_data.append(current_games)
+    
+    # 모든 처리된 데이터 합치기
+    df_processed = pd.concat(processed_data, ignore_index=True)
     
     # 범주형 변수 인코딩
     le = LabelEncoder()
     categorical_columns = ['팀명', '경기장', '홈/원정']
     
     for col in categorical_columns:
-        df[col + '_인코딩'] = le.fit_transform(df[col])
+        df_processed[col + '_인코딩'] = le.fit_transform(df_processed[col])
     
-    return df
+    return df_processed
 
 def main():
     try:

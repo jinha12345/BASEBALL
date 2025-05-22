@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import TimeSeriesSplit, KFold
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 import xgboost as xgb
 import lightgbm as lgb
 from sklearn.ensemble import RandomForestClassifier, StackingClassifier
@@ -67,31 +69,46 @@ def create_advanced_features(df):
     
     return df
 
-def calculate_team_stats(df, window=10):
+def calculate_team_stats(df, target_date, window=10):
     """팀별 이동평균 통계를 계산하는 함수"""
-    logging.info(f"팀 통계 계산 중 (window={window})...")
+    logging.info(f"팀 통계 계산 중 (기준일: {target_date}, window={window})...")
     stats_list = []
     
     for team in df['팀명'].unique():
-        team_data = df[df['팀명'] == team].sort_values('날짜')
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
+        
+        # 데이터가 충분하지 않은 경우 처리
+        if len(team_data) < 1:
+            continue
         
         # 기본 통계
-        stats = pd.DataFrame({
-            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean(),
-            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean(),
-            '최근평균안타': team_data['안타'].rolling(window, min_periods=1).mean(),
-            '최근평균홈런': team_data['홈런'].rolling(window, min_periods=1).mean(),
-            '최근평균타율': team_data['안타'].rolling(window, min_periods=1).sum() / 
-                        team_data['타수'].rolling(window, min_periods=1).sum(),
-            '최근평균출루율': (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() / 
-                        (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
-        })
+        recent_stats = pd.DataFrame({
+            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균안타': team_data['안타'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균홈런': team_data['홈런'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균타율': (
+                team_data['안타'].rolling(window, min_periods=1).sum() /
+                team_data['타수'].rolling(window, min_periods=1).sum()
+            ).iloc[-1],
+            '최근평균출루율': (
+                (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() /
+                (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
+            ).iloc[-1]
+        }, index=[0])
         
-        stats['팀명'] = team
-        stats['날짜'] = team_data['날짜']
-        stats_list.append(stats)
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        stats_list.append(recent_stats)
     
-    return pd.concat(stats_list)
+    if not stats_list:
+        return pd.DataFrame()
+    
+    return pd.concat(stats_list, ignore_index=True)
 
 def create_base_models():
     """기본 모델들을 생성하는 함수"""
@@ -124,9 +141,16 @@ def create_base_models():
 def create_stacking_classifier(base_models):
     """스태킹 앙상블 모델을 생성하는 함수"""
     meta_model = LogisticRegression(random_state=42)
+    
+    # KFold 교차 검증 설정
+    cv = KFold(n_splits=5, shuffle=True, random_state=42)
+    
     return StackingClassifier(
         estimators=list(base_models.items()),
-        final_estimator=meta_model
+        final_estimator=meta_model,
+        cv=cv,
+        n_jobs=-1,  # 병렬 처리 활성화
+        passthrough=True  # 원본 특성도 메타 모델에 전달
     )
 
 def preprocess_data(df):
@@ -135,22 +159,41 @@ def preprocess_data(df):
     
     # 날짜 변환
     df['날짜'] = pd.to_datetime(df['날짜'])
+    df = df.sort_values('날짜')
     
     # 고급 특성 생성
     df = create_advanced_features(df)
     
-    # 팀 통계 계산
-    team_stats = calculate_team_stats(df)
-    df = df.merge(team_stats, on=['팀명', '날짜'], how='left')
+    # 각 날짜별로 통계 계산
+    processed_data = []
+    for date in df['날짜'].unique():
+        # 해당 날짜의 경기 데이터
+        current_games = df[df['날짜'] == date]
+        
+        # 해당 날짜 이전 데이터로 통계 계산
+        team_stats = calculate_team_stats(df, date)
+        
+        # 현재 경기 데이터와 통계 병합
+        if not team_stats.empty:
+            current_games = current_games.merge(
+                team_stats, on=['팀명', '날짜'], how='left')
+        
+        processed_data.append(current_games)
+    
+    # 모든 처리된 데이터 합치기
+    df_processed = pd.concat(processed_data, ignore_index=True)
     
     # 범주형 변수 인코딩
     le = LabelEncoder()
     categorical_columns = ['팀명', '경기장', '홈/원정']
     
     for col in categorical_columns:
-        df[col + '_인코딩'] = le.fit_transform(df[col])
+        df_processed[col + '_인코딩'] = le.fit_transform(df_processed[col])
     
-    return df
+    # 결측치가 있는 행 제거
+    df_processed = df_processed.dropna()
+    
+    return df_processed
 
 def main():
     try:
@@ -171,6 +214,7 @@ def main():
         X = df[features]
         y = (df['승리여부'] == '승').astype(int)
         
+        # 시계열 분할
         tscv = TimeSeriesSplit(n_splits=5)
         splits = list(tscv.split(X))
         train_index, test_index = splits[-1]
@@ -178,40 +222,42 @@ def main():
         X_train, X_test = X.iloc[train_index], X.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
         
-        # 5. 스케일링
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+        # 5. 전처리 파이프라인 생성
+        preprocessing = Pipeline([
+            ('imputer', SimpleImputer(strategy='mean')),
+            ('scaler', StandardScaler())
+        ])
         
-        # 6. 기본 모델 생성
+        # 6. 데이터 전처리 적용
+        X_train_processed = preprocessing.fit_transform(X_train)
+        X_test_processed = preprocessing.transform(X_test)
+        
+        # 7. 기본 모델 생성
         base_models = create_base_models()
         
-        # 7. 스태킹 앙상블 모델 생성 및 학습
-        stacking_clf = create_stacking_classifier(base_models)
-        stacking_clf.fit(X_train_scaled, y_train)
+        # 8. 스태킹 모델 생성 및 학습
+        stacking_model = create_stacking_classifier(base_models)
         
-        # 8. 예측
-        y_pred_proba = stacking_clf.predict_proba(X_test_scaled)[:, 1]
+        # 9. 모델 학습 (교차 검증 결과 출력)
+        logging.info("\n기본 모델 학습 중...")
+        for name, model in base_models.items():
+            model.fit(X_train_processed, y_train)
+            y_pred = model.predict(X_test_processed)
+            accuracy = accuracy_score(y_test, y_pred)
+            logging.info(f"{name} 모델 정확도: {accuracy:.4f}")
+        
+        logging.info("\n스태킹 모델 학습 중...")
+        stacking_model.fit(X_train_processed, y_train)
+        
+        # 10. 예측 및 평가
+        y_pred_proba = stacking_model.predict_proba(X_test_processed)[:, 1]
         y_pred = (y_pred_proba > 0.5).astype(int)
         
-        # 9. 성능 평가
         accuracy = accuracy_score(y_test, y_pred)
         auc = roc_auc_score(y_test, y_pred_proba)
         
-        logging.info(f'\n스태킹 앙상블 모델 정확도: {accuracy:.4f}')
-        logging.info(f'스태킹 앙상블 모델 AUC: {auc:.4f}')
-        
-        # 10. 개별 모델 성능 평가
-        for name, model in base_models.items():
-            model.fit(X_train_scaled, y_train)
-            model_pred_proba = model.predict_proba(X_test_scaled)[:, 1]
-            model_pred = (model_pred_proba > 0.5).astype(int)
-            
-            model_accuracy = accuracy_score(y_test, model_pred)
-            model_auc = roc_auc_score(y_test, model_pred_proba)
-            
-            logging.info(f'\n{name} 모델 정확도: {model_accuracy:.4f}')
-            logging.info(f'{name} 모델 AUC: {model_auc:.4f}')
+        logging.info(f'\n스태킹 모델 정확도: {accuracy:.4f}')
+        logging.info(f'스태킹 모델 AUC: {auc:.4f}')
         
         # 11. 결과 저장
         results = pd.DataFrame({

@@ -67,31 +67,46 @@ def create_advanced_features(df):
     
     return df
 
-def calculate_team_stats(df, window=10):
+def calculate_team_stats(df, target_date, window=10):
     """팀별 이동평균 통계를 계산하는 함수"""
-    logging.info(f"팀 통계 계산 중 (window={window})...")
+    logging.info(f"팀 통계 계산 중 (기준일: {target_date}, window={window})...")
     stats_list = []
     
     for team in df['팀명'].unique():
-        team_data = df[df['팀명'] == team].sort_values('날짜')
+        # 해당 날짜 이전의 데이터만 선택
+        team_data = df[
+            (df['팀명'] == team) & 
+            (df['날짜'] < target_date)
+        ].sort_values('날짜')
+        
+        # 데이터가 충분하지 않은 경우 처리
+        if len(team_data) < 1:
+            continue
         
         # 기본 통계
-        stats = pd.DataFrame({
-            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean(),
-            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean(),
-            '최근평균안타': team_data['안타'].rolling(window, min_periods=1).mean(),
-            '최근평균홈런': team_data['홈런'].rolling(window, min_periods=1).mean(),
-            '최근평균타율': team_data['안타'].rolling(window, min_periods=1).sum() / 
-                        team_data['타수'].rolling(window, min_periods=1).sum(),
-            '최근평균출루율': (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() / 
-                        (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
-        })
+        recent_stats = pd.DataFrame({
+            '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균안타': team_data['안타'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균홈런': team_data['홈런'].rolling(window, min_periods=1).mean().iloc[-1],
+            '최근평균타율': (
+                team_data['안타'].rolling(window, min_periods=1).sum() /
+                team_data['타수'].rolling(window, min_periods=1).sum()
+            ).iloc[-1],
+            '최근평균출루율': (
+                (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() /
+                (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
+            ).iloc[-1]
+        }, index=[0])
         
-        stats['팀명'] = team
-        stats['날짜'] = team_data['날짜']
-        stats_list.append(stats)
+        recent_stats['팀명'] = team
+        recent_stats['날짜'] = target_date
+        stats_list.append(recent_stats)
     
-    return pd.concat(stats_list)
+    if not stats_list:
+        return pd.DataFrame()
+    
+    return pd.concat(stats_list, ignore_index=True)
 
 def create_neural_network(input_dim):
     """딥러닝 모델 생성 함수"""
@@ -122,23 +137,39 @@ def preprocess_data(df):
     
     # 날짜 변환
     df['날짜'] = pd.to_datetime(df['날짜'])
+    df = df.sort_values('날짜')
     
     # 시간 특성 생성
     df['요일'] = df['날짜'].dt.dayofweek
     df['월'] = df['날짜'].dt.month
     
-    # 팀 통계 계산
-    team_stats = calculate_team_stats(df)
-    df = df.merge(team_stats, on=['팀명', '날짜'], how='left')
+    # 각 날짜별로 통계 계산
+    processed_data = []
+    for date in df['날짜'].unique():
+        # 해당 날짜의 경기 데이터
+        current_games = df[df['날짜'] == date]
+        
+        # 해당 날짜 이전 데이터로 통계 계산
+        team_stats = calculate_team_stats(df, date)
+        
+        # 현재 경기 데이터와 통계 병합
+        if not team_stats.empty:
+            current_games = current_games.merge(
+                team_stats, on=['팀명', '날짜'], how='left')
+        
+        processed_data.append(current_games)
+    
+    # 모든 처리된 데이터 합치기
+    df_processed = pd.concat(processed_data, ignore_index=True)
     
     # 범주형 변수 인코딩
     le = LabelEncoder()
     categorical_columns = ['팀명', '경기장', '홈/원정']
     
     for col in categorical_columns:
-        df[col + '_인코딩'] = le.fit_transform(df[col])
+        df_processed[col + '_인코딩'] = le.fit_transform(df_processed[col])
     
-    return df
+    return df_processed
 
 def main():
     try:
@@ -171,34 +202,26 @@ def main():
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
         
-        # 6. 모델 생성 및 학습
-        model = create_neural_network(X_train_scaled.shape[1])
+        # 6. 모델 생성
+        model = create_neural_network(input_dim=len(features))
         
+        # 7. 조기 종료 설정
         early_stopping = EarlyStopping(
             monitor='val_loss',
             patience=10,
             restore_best_weights=True
         )
         
+        # 8. 모델 학습
+        batch_size = 32  # 배치 크기 설정
         history = model.fit(
             X_train_scaled, y_train,
             epochs=100,
-            batch_size=32,
+            batch_size=batch_size,
             validation_split=0.2,
             callbacks=[early_stopping],
-            verbose=0
+            verbose=1
         )
-        
-        # 7. 예측
-        y_pred_proba = model.predict(X_test_scaled)
-        y_pred = (y_pred_proba > 0.5).astype(int)
-        
-        # 8. 성능 평가
-        accuracy = accuracy_score(y_test, y_pred)
-        auc = roc_auc_score(y_test, y_pred_proba)
-        
-        logging.info(f'\n딥러닝 모델 정확도: {accuracy:.4f}')
-        logging.info(f'딥러닝 모델 AUC: {auc:.4f}')
         
         # 9. 학습 곡선 시각화
         plt.figure(figsize=(12, 4))
@@ -223,11 +246,21 @@ def main():
         plt.savefig('learning_curves_nn.png')
         plt.close()
         
-        # 10. 결과 저장
+        # 10. 예측 및 평가
+        y_pred_proba = model.predict(X_test_scaled)
+        y_pred = (y_pred_proba > 0.5).astype(int)
+        
+        accuracy = accuracy_score(y_test, y_pred)
+        auc = roc_auc_score(y_test, y_pred_proba)
+        
+        logging.info(f'\n신경망 모델 정확도: {accuracy:.4f}')
+        logging.info(f'신경망 모델 AUC: {auc:.4f}')
+        
+        # 11. 결과 저장
         results = pd.DataFrame({
-            '실제값': y_test.values,  # numpy array로 변환
-            '예측값': y_pred.flatten(),  # 1차원으로 변환
-            '예측확률': y_pred_proba.flatten()  # 1차원으로 변환
+            '실제값': y_test,
+            '예측값': y_pred,
+            '예측확률': y_pred_proba.flatten()
         })
         results.to_csv('prediction_results_nn.csv', index=False, encoding='utf-8-sig')
         

@@ -13,8 +13,15 @@ import logging
 import matplotlib.font_manager as fm
 
 # 한글 폰트 설정
-plt.rcParams['font.family'] = 'Malgun Gothic'
+plt.rcParams['font.family'] = 'AppleGothic'  # MacOS 용 폰트
 plt.rcParams['axes.unicode_minus'] = False
+
+# 폰트가 없는 경우를 대비한 예외 처리 추가
+try:
+    plt.rcParams['font.family'] = 'AppleGothic'
+except:
+    plt.rcParams['font.family'] = 'NanumGothic'
+    logging.warning("AppleGothic 폰트를 찾을 수 없어 NanumGothic으로 대체합니다.")
 
 warnings.filterwarnings('ignore')
 
@@ -59,7 +66,15 @@ def main():
         
         # 상대팀 정보 추가
         logging.info("상대팀 정보 추가 중...")
-        df['상대팀'] = df.groupby(['경기ID'])['팀명'].transform(lambda x: x.iloc[::-1].values if len(x) == 2 else None)
+        def get_opponent_team(group):
+            if len(group) != 2:
+                logging.warning(f"경기 ID {group.name}에 대해 2개의 팀이 아닌 {len(group)}개의 팀이 있습니다.")
+                return ['알수없음'] * len(group)
+            return group['팀명'].iloc[::-1].values
+
+        df['상대팀'] = df.groupby(['경기ID']).apply(get_opponent_team).explode().values
+        df['상대팀'].fillna('알수없음', inplace=True)
+        logging.info(f"상대팀 정보 추가 완료. 알수없음 값 개수: {(df['상대팀'] == '알수없음').sum()}")
         
         # 팀명 정규화
         logging.info("팀명 정규화 중...")
@@ -151,42 +166,83 @@ def main():
             lambda x: pd.Series(determine_result(x), index=x.index)
         ).values
 
-        def calculate_team_stats(df, window=10):
-            logging.info(f"팀 통계 계산 중 (window={window})...")
+        def calculate_team_stats(df, target_date, window=10):
+            """
+            특정 날짜 이전의 데이터만 사용하여 팀별 득점 관련 통계를 계산하는 함수
+            """
+            logging.info(f"팀 통계 계산 중 (기준일: {target_date}, window={window})...")
             stats_list = []
             
             for team in df['팀명'].unique():
-                team_data = df[df['팀명'] == team].sort_values('날짜')
+                # 해당 날짜 이전의 데이터만 선택
+                team_data = df[
+                    (df['팀명'] == team) & 
+                    (df['날짜'] < target_date)
+                ].sort_values('날짜')
                 
-                # 통계 계산
-                stats = pd.DataFrame({
-                    '최근승률': team_data['승리여부'].eq('승').rolling(window, min_periods=1).mean(),
-                    '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean(),
-                    '최근평균타율': team_data['안타'].rolling(window, min_periods=1).sum() / 
-                                team_data['타수'].rolling(window, min_periods=1).sum(),
-                    '최근평균출루율': (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() / 
-                                (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum(),
-                    '최근평균장타율': team_data['루타'].rolling(window, min_periods=1).sum() / 
-                                team_data['타수'].rolling(window, min_periods=1).sum()
-                })
+                # 데이터가 충분하지 않은 경우 처리
+                if len(team_data) < 1:
+                    continue
+                    
+                # 득점 관련 통계 계산
+                recent_stats = pd.DataFrame({
+                    '최근평균득점': team_data['득점'].rolling(window, min_periods=1).mean().iloc[-1],
+                    '최근득점분산': team_data['득점'].rolling(window, min_periods=1).var().iloc[-1],
+                    '최근안타득점비율': (
+                        team_data['득점'].rolling(window, min_periods=1).sum() /
+                        (team_data['안타'].rolling(window, min_periods=1).sum() + 1e-6)
+                    ).iloc[-1],
+                    '최근타율': (
+                        team_data['안타'].rolling(window, min_periods=1).sum() /
+                        team_data['타수'].rolling(window, min_periods=1).sum()
+                    ).iloc[-1],
+                    '최근출루율': (
+                        (team_data['안타'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum() /
+                        (team_data['타수'] + team_data['볼넷'] + team_data['사구']).rolling(window, min_periods=1).sum()
+                    ).iloc[-1],
+                    '최근장타율': (
+                        team_data['루타'].rolling(window, min_periods=1).sum() /
+                        team_data['타수'].rolling(window, min_periods=1).sum()
+                    ).iloc[-1]
+                }, index=[0])
                 
-                stats['팀명'] = team
-                stats['날짜'] = team_data['날짜']
-                stats_list.append(stats)
+                recent_stats['팀명'] = team
+                recent_stats['날짜'] = target_date
+                stats_list.append(recent_stats)
             
-            return pd.concat(stats_list)
+            if not stats_list:
+                return pd.DataFrame()
+            
+            return pd.concat(stats_list, ignore_index=True)
 
-        # 팀 통계 계산
-        team_stats = calculate_team_stats(df)
-        df = df.merge(team_stats, on=['팀명', '날짜'], how='left')
+        # 데이터 전처리 부분 수정
+        processed_data = []
+        for date in df['날짜'].unique():
+            # 해당 날짜의 경기 데이터
+            current_games = df[df['날짜'] == date]
+            
+            # 해당 날짜 이전 데이터로 통계 계산
+            team_stats = calculate_team_stats(df, date)
+            
+            # 현재 경기 데이터와 통계 병합
+            if not team_stats.empty:
+                current_games = current_games.merge(
+                    team_stats, on=['팀명', '날짜'], how='left')
+                
+                # 상대팀 통계 병합
+                opponent_stats = team_stats.copy()
+                opponent_stats.columns = [
+                    '상대팀' + col if col not in ['팀명', '날짜'] else col 
+                    for col in opponent_stats.columns
+                ]
+                opponent_stats = opponent_stats.rename(columns={'팀명': '상대팀'})
+                current_games = current_games.merge(
+                    opponent_stats, on=['상대팀', '날짜'], how='left')
+            
+            processed_data.append(current_games)
 
-        # 상대팀 통계 계산
-        logging.info("상대팀 통계 계산 중...")
-        opponent_stats = team_stats.copy()
-        opponent_stats.columns = ['상대팀' + col if col not in ['팀명', '날짜'] else col 
-                                for col in opponent_stats.columns]
-        opponent_stats = opponent_stats.rename(columns={'팀명': '상대팀'})
-        df = df.merge(opponent_stats, on=['상대팀', '날짜'], how='left')
+        # 모든 처리된 데이터 합치기
+        df = pd.concat(processed_data, ignore_index=True)
 
         # 시간 관련 피처 생성
         logging.info("시간 관련 피처 생성 중...")
@@ -206,8 +262,9 @@ def main():
 
         # 최종 특성 선택 (득점 예측용)
         features = ['팀명_인코딩', '상대팀_인코딩', '경기장_인코딩', '홈/원정_인코딩',
-                   '최근승률', '최근평균득점', '최근평균타율', '최근평균출루율', '최근평균장타율',
-                   '상대팀최근승률', '상대팀최근평균득점', '주말', '월']
+                   '최근평균득점', '최근득점분산', '최근안타득점비율', '최근타율', '최근출루율', '최근장타율',
+                   '상대팀최근평균득점', '상대팀최근득점분산', '상대팀최근안타득점비율', '상대팀최근타율', '상대팀최근출루율',
+                   '상대팀최근장타율', '주말', '월']
 
         # 목표 변수를 승리여부에서 득점으로 변경
         original_wins = (df['승리여부'] == '승').astype(int)  # 원래 승패 정보 저장
@@ -217,92 +274,108 @@ def main():
         logging.info("\n데이터 분할 중...")
         X = df[features]
 
-        # 시계열 분할
+        # 시계열 교차 검증
         tscv = TimeSeriesSplit(n_splits=5)
-        splits = list(tscv.split(X))
-        train_index, test_index = splits[-1]  # 마지막 분할 사용
+        cv_scores_rmse = []
+        cv_scores_r2 = []
+        cv_scores_accuracy = []
+        cv_scores_auc = []
 
-        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-        original_wins_test = original_wins.iloc[test_index]  # 테스트 세트의 실제 승패
+        for fold, (train_index, test_index) in enumerate(tscv.split(X), 1):
+            logging.info(f"\n{fold}번째 폴드 학습 중...")
+            
+            X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+            y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+            original_wins_test = original_wins.iloc[test_index]
 
-        logging.info(f"학습 데이터 크기: {X_train.shape}")
-        logging.info(f"테스트 데이터 크기: {X_test.shape}")
+            # 스케일링
+            scaler = StandardScaler()
+            X_train_scaled = scaler.fit_transform(X_train)
+            X_test_scaled = scaler.transform(X_test)
 
-        # 스케일링
-        logging.info("\n스케일링 중...")
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+            # XGBoost 모델
+            xgb_model = xgb.XGBRegressor(
+                learning_rate=0.03,
+                max_depth=5,
+                n_estimators=300,
+                objective='reg:squarederror',
+                random_state=42
+            )
+            xgb_model.fit(X_train_scaled, y_train)
 
-        # 모델 학습 (회귀 모델로 변경)
-        logging.info("\n모델 학습 중...")
-        
-        # XGBoost 회귀 모델
-        logging.info("XGBoost 모델 학습...")
-        xgb_model = xgb.XGBRegressor(
-            learning_rate=0.03,
-            max_depth=5,
-            n_estimators=300,
-            objective='reg:squarederror',
-            random_state=42
-        )
-        xgb_model.fit(X_train_scaled, y_train)
+            # LightGBM 모델
+            lgb_model = lgb.LGBMRegressor(
+                learning_rate=0.03,
+                max_depth=5,
+                n_estimators=300,
+                objective='regression',
+                random_state=42
+            )
+            lgb_model.fit(X_train_scaled, y_train)
 
-        # LightGBM 회귀 모델
-        logging.info("LightGBM 모델 학습...")
-        lgb_model = lgb.LGBMRegressor(
-            learning_rate=0.03,
-            max_depth=5,
-            n_estimators=300,
-            objective='regression',
-            random_state=42
-        )
-        lgb_model.fit(X_train_scaled, y_train)
+            # 예측
+            xgb_pred = xgb_model.predict(X_test_scaled)
+            lgb_pred = lgb_model.predict(X_test_scaled)
+            ensemble_pred = 0.6 * xgb_pred + 0.4 * lgb_pred
 
-        # 득점 예측
-        logging.info("\n예측 수행 중...")
-        xgb_pred = xgb_model.predict(X_test_scaled)
-        lgb_pred = lgb_model.predict(X_test_scaled)
+            # 성능 평가
+            mse = mean_squared_error(y_test, ensemble_pred)
+            rmse = np.sqrt(mse)
+            r2 = r2_score(y_test, ensemble_pred)
+            
+            # 승패 예측을 위한 처리
+            df_test = df.iloc[test_index].copy()
+            df_test['예측득점'] = ensemble_pred
+            
+            def determine_win_from_predicted_scores(group):
+                """
+                예측된 득점을 기반으로 승패를 결정하는 함수
+                동점인 경우 실제 경기 결과를 반영
+                """
+                if len(group) != 2:
+                    logging.warning(f"경기 ID {group.name}에 대해 2개의 팀이 아닌 {len(group)}개의 팀이 있습니다.")
+                    return [0] * len(group)
+                
+                score1, score2 = group['예측득점'].values
+                actual1, actual2 = group['득점'].values
+                
+                # 예측 점수 차이가 0.5점 이내인 경우 동점으로 처리
+                if abs(score1 - score2) < 0.5:
+                    # 실제 경기가 동점이었다면 둘 다 0.5로 처리
+                    if actual1 == actual2:
+                        return [0.5, 0.5]
+                    # 실제 경기 결과를 따름
+                    elif actual1 > actual2:
+                        return [1, 0]
+                    else:
+                        return [0, 1]
+                # 예측 점수 차이가 큰 경우 예측대로 처리
+                elif score1 > score2:
+                    return [1, 0]
+                else:
+                    return [0, 1]
 
-        # 앙상블 득점 예측
-        ensemble_pred = 0.6 * xgb_pred + 0.4 * lgb_pred
+            predicted_wins = df_test.groupby('경기ID').apply(
+                lambda x: pd.Series(determine_win_from_predicted_scores(x), index=x.index)
+            ).values
 
-        # 득점 예측 성능 평가
-        mse = mean_squared_error(y_test, ensemble_pred)
-        rmse = np.sqrt(mse)
-        r2 = r2_score(y_test, ensemble_pred)
-        
-        logging.info(f'\n득점 예측 RMSE: {rmse:.4f}')
-        logging.info(f'득점 예측 R2 Score: {r2:.4f}')
+            accuracy = accuracy_score(original_wins_test, predicted_wins)
+            auc = roc_auc_score(original_wins_test, predicted_wins)
 
-        # 승패 예측을 위해 같은 경기의 양 팀 득점 예측값 비교
-        logging.info("\n승패 예측 변환 중...")
-        
-        # 경기별로 예측된 득점을 그룹화하여 승패 결정
-        df_test = df.iloc[test_index].copy()
-        df_test['예측득점'] = ensemble_pred
-        
-        def determine_win_from_predicted_scores(group):
-            if len(group) != 2:
-                return [0] * len(group)
-            score1, score2 = group['예측득점'].values
-            if score1 > score2:
-                return [1, 0]
-            elif score1 < score2:
-                return [0, 1]
-            return [0, 0]  # 동점인 경우
+            cv_scores_rmse.append(rmse)
+            cv_scores_r2.append(r2)
+            cv_scores_accuracy.append(accuracy)
+            cv_scores_auc.append(auc)
+            
+            logging.info(f'폴드 {fold} - RMSE: {rmse:.4f}, R2: {r2:.4f}')
+            logging.info(f'폴드 {fold} - 정확도: {accuracy:.4f}, AUC: {auc:.4f}')
 
-        predicted_wins = df_test.groupby('경기ID').apply(
-            lambda x: pd.Series(determine_win_from_predicted_scores(x), index=x.index)
-        ).values
-
-        # 승패 예측 성능 평가
-        accuracy = accuracy_score(original_wins_test, predicted_wins)
-        auc = roc_auc_score(original_wins_test, predicted_wins)
-
-        logging.info(f'\n승패 예측 정확도: {accuracy:.4f}')
-        logging.info(f'승패 예측 AUC: {auc:.4f}')
+        # 평균 성능 출력
+        logging.info("\n교차 검증 평균 성능:")
+        logging.info(f'평균 RMSE: {np.mean(cv_scores_rmse):.4f} (±{np.std(cv_scores_rmse):.4f})')
+        logging.info(f'평균 R2: {np.mean(cv_scores_r2):.4f} (±{np.std(cv_scores_r2):.4f})')
+        logging.info(f'평균 정확도: {np.mean(cv_scores_accuracy):.4f} (±{np.std(cv_scores_accuracy):.4f})')
+        logging.info(f'평균 AUC: {np.mean(cv_scores_auc):.4f} (±{np.std(cv_scores_auc):.4f})')
 
         # 특성 중요도 시각화
         logging.info("\n특성 중요도 시각화 중...")
@@ -313,13 +386,18 @@ def main():
             '상대팀_인코딩': '상대팀',
             '경기장_인코딩': '경기장',
             '홈/원정_인코딩': '홈/원정',
-            '최근승률': '최근 승률',
             '최근평균득점': '최근 평균 득점',
-            '최근평균타율': '최근 평균 타율',
-            '최근평균출루율': '최근 평균 출루율',
-            '최근평균장타율': '최근 평균 장타율',
-            '상대팀최근승률': '상대팀 최근 승률',
+            '최근득점분산': '최근 득점 분산',
+            '최근안타득점비율': '최근 안타 득점 비율',
+            '최근타율': '최근 타율',
+            '최근출루율': '최근 출루율',
+            '최근장타율': '최근 장타율',
             '상대팀최근평균득점': '상대팀 최근 평균 득점',
+            '상대팀최근득점분산': '상대팀 최근 득점 분산',
+            '상대팀최근안타득점비율': '상대팀 최근 안타 득점 비율',
+            '상대팀최근타율': '상대팀 최근 타율',
+            '상대팀최근출루율': '상대팀 최근 출루율',
+            '상대팀최근장타율': '상대팀 최근 장타율',
             '주말': '주말 경기',
             '월': '월별 경기'
         }
