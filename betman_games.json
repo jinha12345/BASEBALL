@@ -1,0 +1,1241 @@
+[
+  {
+    "round_info": {
+      "value": "G101,250062",
+      "text": "62회차 [05월26일 월요일 회차마감]"
+    },
+    "games": [
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n19",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n1 :\n점수\n2 SSG",
+          "승\n1.55배당률 하락\n-패\n2.04배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n24",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n3 NC",
+          "승\n1.41\n-패\n2.34",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n29",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n2 두산",
+          "승\n1.44배당률 하락\n-패\n2.26배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "34",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n3 :\n점수\n5 키움",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "39",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n2 :\n점수\n3 한화",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n156",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA : 한화",
+          "승\n1.40\n발매차단\n-패\n2.37\n발매차단",
+          "05.03 (토)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n205",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n4 :\n점수\n1 SSG",
+          "승\n1.41배당률 하락\n-패\n2.34배당률 상승",
+          "05.03 (토)\n17:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "210",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n13 NC",
+          "승\n1.65\n-패\n1.89",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "215",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n1 :\n점수\n6 두산",
+          "승\n1.39\n-패\n2.40",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "220",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n9 :\n점수\n0 키움",
+          "승\n1.43\n-패\n2.29",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "440",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n12 :\n점수\n4 SSG",
+          "승\n1.40\n-패\n2.37",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "445",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n6 :\n점수\n9 NC",
+          "승\n1.30\n-패\n2.72",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "450",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n11 두산",
+          "승\n1.68\n-패\n1.85",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "455",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n5 :\n점수\n4 키움",
+          "승\n1.21\n-패\n3.23",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "460",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n1 :\n점수\n3 한화",
+          "승\n1.63\n-패\n1.91",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "619",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "두산\n점수\n5 :\n점수\n2 LG",
+          "승\n1.73\n-패\n1.79",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n624",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n1 :\n점수\n7 SSG",
+          "승\n1.89배당률 상승\n-패\n1.65배당률 하락",
+          "05.05 (월)\n14:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "629",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n2 :\n점수\n6 NC",
+          "승\n1.96\n-패\n1.60",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "634",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "키움\n점수\n1 :\n점수\n13 KIA",
+          "승\n3.03\n-패\n1.24",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "639",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "한화\n점수\n3 :\n점수\n1 삼성",
+          "승\n1.49\n-패\n2.15",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      }
+    ],
+    "search_conditions": {
+      "game_type": "일반",
+      "league": "KBO"
+    },
+    "crawl_time": "2025-05-25 16:19:17"
+  },
+  {
+    "round_info": {
+      "value": "G101,250061",
+      "text": "61회차 [05월23일 금요일 회차마감]"
+    },
+    "games": [
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n19",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n1 :\n점수\n2 SSG",
+          "승\n1.55배당률 하락\n-패\n2.04배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n24",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n3 NC",
+          "승\n1.41\n-패\n2.34",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n29",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n2 두산",
+          "승\n1.44배당률 하락\n-패\n2.26배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "34",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n3 :\n점수\n5 키움",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "39",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n2 :\n점수\n3 한화",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n156",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA : 한화",
+          "승\n1.40\n발매차단\n-패\n2.37\n발매차단",
+          "05.03 (토)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n205",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n4 :\n점수\n1 SSG",
+          "승\n1.41배당률 하락\n-패\n2.34배당률 상승",
+          "05.03 (토)\n17:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "210",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n13 NC",
+          "승\n1.65\n-패\n1.89",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "215",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n1 :\n점수\n6 두산",
+          "승\n1.39\n-패\n2.40",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "220",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n9 :\n점수\n0 키움",
+          "승\n1.43\n-패\n2.29",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "440",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n12 :\n점수\n4 SSG",
+          "승\n1.40\n-패\n2.37",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "445",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n6 :\n점수\n9 NC",
+          "승\n1.30\n-패\n2.72",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "450",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n11 두산",
+          "승\n1.68\n-패\n1.85",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "455",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n5 :\n점수\n4 키움",
+          "승\n1.21\n-패\n3.23",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "460",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n1 :\n점수\n3 한화",
+          "승\n1.63\n-패\n1.91",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "619",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "두산\n점수\n5 :\n점수\n2 LG",
+          "승\n1.73\n-패\n1.79",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n624",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n1 :\n점수\n7 SSG",
+          "승\n1.89배당률 상승\n-패\n1.65배당률 하락",
+          "05.05 (월)\n14:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "629",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n2 :\n점수\n6 NC",
+          "승\n1.96\n-패\n1.60",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "634",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "키움\n점수\n1 :\n점수\n13 KIA",
+          "승\n3.03\n-패\n1.24",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "639",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "한화\n점수\n3 :\n점수\n1 삼성",
+          "승\n1.49\n-패\n2.15",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      }
+    ],
+    "search_conditions": {
+      "game_type": "일반",
+      "league": "KBO"
+    },
+    "crawl_time": "2025-05-25 16:19:36"
+  },
+  {
+    "round_info": {
+      "value": "G101,250060",
+      "text": "60회차 [05월21일 수요일 회차마감]"
+    },
+    "games": [
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n19",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n1 :\n점수\n2 SSG",
+          "승\n1.55배당률 하락\n-패\n2.04배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n24",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n3 NC",
+          "승\n1.41\n-패\n2.34",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n29",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n2 두산",
+          "승\n1.44배당률 하락\n-패\n2.26배당률 상승",
+          "05.02 (금)\n18:30",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "34",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n3 :\n점수\n5 키움",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "39",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n2 :\n점수\n3 한화",
+          "승\n1.46\n-패\n2.22",
+          "05.02 (금)\n18:30",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n156",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA : 한화",
+          "승\n1.40\n발매차단\n-패\n2.37\n발매차단",
+          "05.03 (토)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n205",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n4 :\n점수\n1 SSG",
+          "승\n1.41배당률 하락\n-패\n2.34배당률 상승",
+          "05.03 (토)\n17:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "210",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n4 :\n점수\n13 NC",
+          "승\n1.65\n-패\n1.89",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "215",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n1 :\n점수\n6 두산",
+          "승\n1.39\n-패\n2.40",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "220",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n9 :\n점수\n0 키움",
+          "승\n1.43\n-패\n2.29",
+          "05.03 (토)\n17:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "440",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "LG\n점수\n12 :\n점수\n4 SSG",
+          "승\n1.40\n-패\n2.37",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "445",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n6 :\n점수\n9 NC",
+          "승\n1.30\n-패\n2.72",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "450",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "삼성\n점수\n6 :\n점수\n11 두산",
+          "승\n1.68\n-패\n1.85",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "455",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n5 :\n점수\n4 키움",
+          "승\n1.21\n-패\n3.23",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "460",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KIA\n점수\n1 :\n점수\n3 한화",
+          "승\n1.63\n-패\n1.91",
+          "05.04 (일)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "619",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "두산\n점수\n5 :\n점수\n2 LG",
+          "승\n1.73\n-패\n1.79",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "긴급 공지\n624",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "롯데\n점수\n1 :\n점수\n7 SSG",
+          "승\n1.89배당률 상승\n-패\n1.65배당률 하락",
+          "05.05 (월)\n14:00",
+          "경기장",
+          "배당률 변동"
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "629",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "KT\n점수\n2 :\n점수\n6 NC",
+          "승\n1.96\n-패\n1.60",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "634",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "키움\n점수\n1 :\n점수\n13 KIA",
+          "승\n3.03\n-패\n1.24",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      },
+      {
+        "sale_period": "",
+        "result_date": "",
+        "refund_period": "",
+        "game_data": [
+          "639",
+          "결과발표",
+          "야구\nKBO",
+          "S\n일반",
+          "한화\n점수\n3 :\n점수\n1 삼성",
+          "승\n1.49\n-패\n2.15",
+          "05.05 (월)\n14:00",
+          "경기장",
+          ""
+        ],
+        "search_conditions": {
+          "game_type": "일반",
+          "league": "KBO"
+        }
+      }
+    ],
+    "search_conditions": {
+      "game_type": "일반",
+      "league": "KBO"
+    },
+    "crawl_time": "2025-05-25 16:19:55"
+  }
+]
