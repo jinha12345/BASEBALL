@@ -14,6 +14,7 @@ import seaborn as sns
 import warnings
 import logging
 import traceback
+import pickle
 
 # 경고 메시지 무시
 warnings.filterwarnings('ignore')
@@ -194,7 +195,7 @@ def preprocess_data(df):
     df_processed = df_processed.dropna()
     
     return df_processed
-
+'''
 def main():
     try:
         # 1. 데이터 로드
@@ -231,6 +232,15 @@ def main():
         # 6. 데이터 전처리 적용
         X_train_processed = preprocessing.fit_transform(X_train)
         X_test_processed = preprocessing.transform(X_test)
+
+        with open('./Model_5_preprocessed_Data/X_train_processed.pickle',"wb") as f:
+            pickle.dump(X_train_processed, f)
+        with open('./Model_5_preprocessed_Data/X_test_processed.pickle',"wb") as f:
+            pickle.dump(X_test_processed, f)
+        with open('./Model_5_preprocessed_Data/y_train.pickle',"wb") as f:
+            pickle.dump(y_train, f)
+        with open('./Model_5_preprocessed_Data/y_test.pickle',"wb") as f:
+            pickle.dump(y_test, f)
         
         # 7. 기본 모델 생성
         base_models = create_base_models()
@@ -273,6 +283,66 @@ def main():
         logging.error(f"\n오류 발생: {str(e)}")
         logging.error("\n상세 오류 정보:")
         logging.error(traceback.format_exc())
+'''
+def main():
+    import pandas as pd
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from sklearn.model_selection import TimeSeriesSplit
+    from sklearn.pipeline import Pipeline
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score
+
+    # 데이터 준비 (기존과 동일)
+    df = load_data()
+    df = preprocess_data(df)
+
+    features = [
+        '팀명_인코딩', '경기장_인코딩', '홈/원정_인코딩',
+        '최근승률', '최근평균득점', '최근평균안타', '최근평균홈런',
+        '최근평균타율', '최근평균출루율', '득점률', '출루율'
+    ]
+
+    X = df[features]
+    y = (df['승리여부'] == '승').astype(int)
+
+    # 전처리 파이프라인
+    preprocessing = Pipeline([
+        ('imputer', SimpleImputer(strategy='mean')),
+        ('scaler', StandardScaler())
+    ])
+
+    # 시계열 분할 및 반복 학습
+    tscv = TimeSeriesSplit(n_splits=100)
+    accuracies = []
+
+    for i, (train_index, test_index) in enumerate(tscv.split(X)):
+        X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+        y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+        
+        # 전처리
+        X_train_processed = preprocessing.fit_transform(X_train)
+        X_test_processed = preprocessing.transform(X_test)
+
+        # 모델 학습 및 평가
+        model = RandomForestClassifier(random_state=42)
+        model.fit(X_train_processed, y_train)
+        y_pred = model.predict(X_test_processed)
+        acc = accuracy_score(y_test, y_pred)
+        accuracies.append(acc)
+        print(f"Split {i+1}: Accuracy = {acc:.4f}")
+
+    # 시각화
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, len(accuracies) + 1), accuracies, marker='o', linestyle='-')
+    plt.title("Split별 정확도 추이 (TimeSeriesSplit)")
+    plt.xlabel("Split 번호 (시간 순서)")
+    plt.ylabel("Accuracy")
+    plt.xticks(range(1, len(accuracies) + 1))
+    plt.grid(True)
+    plt.show()
 
 if __name__ == "__main__":
     main() 
